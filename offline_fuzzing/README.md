@@ -1,0 +1,1 @@
+Code contained in this directory relates to fuzzing the Mattermost server offline, meaning we are simply fuzzing against the codebase itself. This code will be implanted into a testing fodler inside of the Mattermost Server repo in order to run GoLang's native fuzzing capabilities against it.
