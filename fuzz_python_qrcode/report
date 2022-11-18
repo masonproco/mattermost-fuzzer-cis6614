@@ -1,0 +1,49 @@
+INFO: Using built-in libfuzzer
+WARNING: Failed to find function "__sanitizer_acquire_crash_state".
+WARNING: Failed to find function "__sanitizer_print_stack_trace".
+WARNING: Failed to find function "__sanitizer_set_death_callback".
+INFO: libFuzzer ignores flags that start with '--'
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1839443985
+INFO:       18 files found in corpus
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+INFO: seed corpus: files: 18 min: 1b max: 9b total: 139b rss: 40Mb
+#19	INITED cov: 311 ft: 421 corp: 16/121b exec/s: 0 rss: 40Mb
+#25	NEW    cov: 311 ft: 423 corp: 17/124b lim: 9 exec/s: 0 rss: 40Mb L: 3/9 MS: 1 CrossOver-
+#26	NEW    cov: 311 ft: 430 corp: 18/133b lim: 9 exec/s: 0 rss: 40Mb L: 9/9 MS: 1 CrossOver-
+#27	NEW    cov: 311 ft: 432 corp: 19/142b lim: 9 exec/s: 0 rss: 40Mb L: 9/9 MS: 1 ChangeBit-
+#29	NEW    cov: 311 ft: 433 corp: 20/151b lim: 9 exec/s: 0 rss: 40Mb L: 9/9 MS: 2 CrossOver-ChangeByte-
+#30	NEW    cov: 311 ft: 435 corp: 21/160b lim: 9 exec/s: 0 rss: 40Mb L: 9/9 MS: 1 CrossOver-
+#31	NEW    cov: 311 ft: 437 corp: 22/169b lim: 9 exec/s: 0 rss: 40Mb L: 9/9 MS: 1 CrossOver-
+#32	NEW    cov: 311 ft: 438 corp: 23/178b lim: 9 exec/s: 32 rss: 40Mb L: 9/9 MS: 1 ChangeByte-
+#33	NEW    cov: 311 ft: 440 corp: 24/187b lim: 9 exec/s: 33 rss: 40Mb L: 9/9 MS: 1 ChangeBit-
+#34	NEW    cov: 311 ft: 441 corp: 25/193b lim: 9 exec/s: 34 rss: 40Mb L: 6/9 MS: 1 CrossOver-
+
+ === Uncaught Python exception: ===
+ValueError: embedded null byte
+Traceback (most recent call last):
+  File "fuzz.py", line 15, in TestQRCodeGenerate
+    img.save("./qrcodes/" + word + ".png")
+  File "/home/mason/.local/lib/python3.8/site-packages/qrcode/image/pil.py", line 58, in save
+    self._img.save(stream, format=format, **kwargs)
+  File "/usr/lib/python3/dist-packages/PIL/Image.py", line 2099, in save
+    fp = builtins.open(filename, "w+b")
+ValueError: embedded null byte
+
+INFO: Instrumenting qrcode
+INFO: Instrumenting qrcode.main
+INFO: Instrumenting qrcode.constants
+INFO: Instrumenting qrcode.exceptions
+INFO: Instrumenting qrcode.util
+INFO: Instrumenting qrcode.base
+INFO: Instrumenting qrcode.LUT
+INFO: Instrumenting qrcode.image
+INFO: Instrumenting qrcode.image.base
+INFO: Instrumenting bisect
+==945615== ERROR: libFuzzer: fuzz target exited
+SUMMARY: libFuzzer: fuzz target exited
+MS: 3 ChangeByte-ChangeBit-CMP- DE: "\000\000\000\000\000\000\000\000"-; base unit: 7c2987e63482e0701e98657fc71dcd3bda3e0bfd
+0x63,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+c\000\000\000\000\000\000\000\000
+artifact_prefix='./'; Test unit written to ./crash-d9f7dbb6396538dd30d188eb5bb54c78a555d7c8
+Base64: YwAAAAAAAAAA
