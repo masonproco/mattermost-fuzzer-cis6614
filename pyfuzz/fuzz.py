@@ -1,7 +1,13 @@
 #importing random module
 import random
+import math
 import qrcode
-import inspect
+import os
+
+# Import custom modules
+import enumerate_utils
+import generator
+
 
 #stores random character to be used for fuzzing
 characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 \"\'!#$%&'()*+,-./:;<=>?@[\\\]^_`{|}~"
@@ -13,24 +19,11 @@ randomrange = 0
 selectfuzz = 0
 data =""
 
-iterations = 100
+iterations = 1
 
-# Get functions from a library
-def enumerateLibraryFunctions():
-    return inspect.getmembers(qrcode, inspect.isfunction)
+    
 
-# Get the number of args for a function
-def enumerateFunctionArgs(functions):
-
-    function_args_address = []
-
-    for function in functions:
-        args = inspect.signature(function[1])
-        parameter_count = len(args.parameters) - 1
-        function_args_address.append((function[0], parameter_count, function[1]))
-       
-    return function_args_address
-
+# Fuzz the function
 def fuzzFunction(functions):
 
     count = 0
@@ -46,14 +39,21 @@ def fuzzFunction(functions):
             inputs = []
 
             for i in range(0, arg_count):
-                inputs.append("a")
+                inputs.append(generator.generateRandomBytes())
             
-            function_address(*inputs)
+            res = function_address(*inputs)
+            children = enumerate_utils.checkChildObject(res)
+
+            if children != []:
+                enumerate_utils.enumerateChildFunctions(qrcode, children, res)
+            else:
+                print("EMPTY")
+
             count += 1
 
 
-functions = enumerateLibraryFunctions()
-functions_and_param_count = enumerateFunctionArgs(functions)
+functions = enumerate_utils.enumerateLibraryFunctions(qrcode)
+functions_and_param_count = enumerate_utils.enumerateFunctionArgs(functions)
 
 fuzzFunction(functions_and_param_count)
 
