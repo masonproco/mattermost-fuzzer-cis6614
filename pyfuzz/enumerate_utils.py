@@ -18,7 +18,10 @@ def enumerateFunctionArgs(functions):
 
 # Check if child object has methods attached to it
 def checkChildObject(childObject):
-    print(childObject)
+    # print(childObject)
+    if childObject == []:
+        return []
+        
     return dir(childObject)
 
 def isPrivate(function):
@@ -30,7 +33,11 @@ def isPrivate(function):
 
     return False
 
-def enumerateChildFunctions(lib, functions, childObject):
+def enumerateChildFunctions(lib, functions, childObject, depth):
+
+    if depth == 1:
+        return
+
     function_args_address = []
 
     for function in functions:
@@ -42,12 +49,11 @@ def enumerateChildFunctions(lib, functions, childObject):
             continue
 
         thing = getattr(childObject.__class__, function)
-        
 
         if callable(thing):
-            print(thing)
+            # print(thing)
             args = inspect.signature(thing)
-            print(args)
+            # print(args)
        # print(args)
        # parameter_count = len(args.parameters) - 1
        # print(getattr(function))

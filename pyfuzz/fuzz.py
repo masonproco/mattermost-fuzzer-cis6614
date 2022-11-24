@@ -7,6 +7,7 @@ import os
 # Import custom modules
 import enumerate_utils
 import generator
+from logger import FuzzLogger
 
 
 #stores random character to be used for fuzzing
@@ -19,9 +20,10 @@ randomrange = 0
 selectfuzz = 0
 data =""
 
-iterations = 1
+iterations = 10
+depth = 1
 
-    
+log = FuzzLogger.initializeLogging()
 
 # Fuzz the function
 def fuzzFunction(functions):
@@ -41,21 +43,27 @@ def fuzzFunction(functions):
             for i in range(0, arg_count):
                 inputs.append(generator.generateRandomBytes())
             
-            res = function_address(*inputs)
+            res = []
+
+            try:
+                res = function_address(*inputs)
+            except Exception as err:
+
+                error_state = {
+                    "Function Name" : function_name,
+                    "Input"         : inputs,
+                    "Error Message" : repr(err)
+                }
+
+                log.info(repr(error_state))
+
+
             children = enumerate_utils.checkChildObject(res)
 
             if children != []:
-                enumerate_utils.enumerateChildFunctions(qrcode, children, res)
-            else:
-                print("EMPTY")
+                enumerate_utils.enumerateChildFunctions(qrcode, children, res, depth)
 
             count += 1
-
-
-functions = enumerate_utils.enumerateLibraryFunctions(qrcode)
-functions_and_param_count = enumerate_utils.enumerateFunctionArgs(functions)
-
-fuzzFunction(functions_and_param_count)
 
 #going to to add the ablility to select characters that must be within the strings
 def numf():
@@ -112,6 +120,12 @@ def fuzzInt():
     print("yeet")
 
 def main():
+
+    functions = enumerate_utils.enumerateLibraryFunctions(qrcode)
+    functions_and_param_count = enumerate_utils.enumerateFunctionArgs(functions)
+
+    fuzzFunction(functions_and_param_count)
+
     print("Enter the minimum number of characters for inputs...")
     min = int(input())
     print("Enter the maximum number of characters for inputs...")
