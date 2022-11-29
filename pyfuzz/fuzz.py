@@ -20,34 +20,46 @@ randomrange = 0
 selectfuzz = 0
 data =""
 
-iterations = 10
+iterations = 100
 depth = 1
+timer = 0
 
 log = FuzzLogger.initializeLogging()
+crash_dict = {}
 
 # Fuzz the function
 def fuzzFunction(functions):
 
     count = 0
+    traverse = True
 
     for function in functions:
         i = 0
         function_name =     function[0]
-        arg_count =         function[1]
         function_address =  function[2]
+
+        print("Fuzzing function " + str(function_name))
 
         # Generate random input and fuzz
         while count < iterations:
-            inputs = []
 
-            for i in range(0, arg_count):
-                inputs.append(generator.generateRandomBytes())
+            param_names = enumerate_utils.getFunctionParamName(function_address)
+            inputs = handleInputGeneration(param_names)
             
             res = []
 
             try:
-                res = function_address(*inputs)
+                res = function_address(**inputs)
             except Exception as err:
+
+                if function_name in crash_dict:
+                    if crash_dict[function_name] == repr(err):
+                        count += 1
+                        continue
+                
+                if "AttributeError" in repr(err):
+                    count += 1
+                    continue
 
                 error_state = {
                     "Function Name" : function_name,
@@ -55,69 +67,41 @@ def fuzzFunction(functions):
                     "Error Message" : repr(err)
                 }
 
+                print("ERROR DETECTED")
+                print("Logging error " + repr(err) + " for function " + str(function_name))
+
+                crash_dict[function_name] = repr(err)
                 log.info(repr(error_state))
 
+            if traverse:
+                # print(res)
+                children = enumerate_utils.checkChildObject(res)
 
-            children = enumerate_utils.checkChildObject(res)
-
-            if children != []:
-                enumerate_utils.enumerateChildFunctions(qrcode, children, res, depth)
+                if children != []:
+                    enumerate_utils.enumerateChildFunctions(qrcode, children, res, depth)
+                
+                traverse = False
 
             count += 1
 
-#going to to add the ablility to select characters that must be within the strings
-def numf():
+def handleInputGeneration(param_names):
+    inputs = {}
     i = 0
-    global characters
-    global data
-    while i < 10000:
-        k = 0
-        j = random.randint(min, max)
-        while k < j:
-            #sets data to random chars from characters (incudes ints, outputs ints)
-            if data[k] == "*" or data[k] == None:
-                data = data + characters[random.randint(51,61)]
-            k += 1
-        data = int(data)
-        print (data)
-        i = i + 1
-        data = ""
+    for i in range(0, len(param_names)):
 
-def alphanum():
-    i = 0
-    global characters
-    global data
-    while i < 10000:
-        k = 0
-        j = random.randint(min, max)
-        while k < j:
-            #sets data to random chars from characters (incudes alphanumric characters)
-            if data[k] == "*" or data[k] == None:
-                data = data + characters[random.randint(0,61)]
-            k += 1
-        print (data)
-        i = i + 1
-        data = ""
+        if param_names[i] == "kwargs":
+            i += 1
+            continue
 
-def alphanumspec():
-    i = 0
-    global characters
-    global data
-    while i < 10000:
-        k = 0
-        j = random.randint(min, max)
-        while k < j:
-            #sets data to random chars from characters (incudes alphanumric+special characters)
-            if data[k] == "*" or data[k] == None:
-                datalst = list(data)
-                datalst[k] = characters[random.randint(0,96)]
-                
-        print (data)
-        i = i + 1
-        data = ""
+        if param_names[i] == "self":
+            inputs[param_names[i]] = ""
+            i += 1
+            continue
 
-def fuzzInt():
-    print("yeet")
+        inputs[param_names[i]] = generator.generateRandomBytes()
+        i += 1
+
+    return inputs
 
 def main():
 
@@ -126,30 +110,30 @@ def main():
 
     fuzzFunction(functions_and_param_count)
 
-    print("Enter the minimum number of characters for inputs...")
-    min = int(input())
-    print("Enter the maximum number of characters for inputs...")
-    max = int(input())
-    print("Does fuzzing target require specific characters? Y/N")
-    specific = input()
-    if specific == "Y" or specific == "y" or specific == "yes" or specific == "Yes":
-        print ("Indicate where in the string characters are required\nEnter a '*' for characters that are to be randomized")
-        print ("Enter other characters to format the string\nExample for date format: **/**/****")
-        data = input()
-    while selectfuzz !=1 and selectfuzz !=2 and selectfuzz !=3:
-        print("Enter a number to indicate type of fuzzing\n1 = Numeric fuzzing with integers")
-        print("2 = Alphanumeric fuzzing output as a string\n3 = Alpanumeric fuzzing with special characters, output as a string")
-        selectfuzz = int(input())
-        if selectfuzz !=1 and selectfuzz !=2 and selectfuzz !=3:
-            print("Please enter 1, 2 or 3")
+    # print("Enter the minimum number of characters for inputs...")
+    # min = int(input())
+    # print("Enter the maximum number of characters for inputs...")
+    # max = int(input())
+    # print("Does fuzzing target require specific characters? Y/N")
+    # specific = input()
+    # if specific == "Y" or specific == "y" or specific == "yes" or specific == "Yes":
+    #     print ("Indicate where in the string characters are required\nEnter a '*' for characters that are to be randomized")
+    #     print ("Enter other characters to format the string\nExample for date format: **/**/****")
+    #     data = input()
+    # while selectfuzz !=1 and selectfuzz !=2 and selectfuzz !=3:
+    #     print("Enter a number to indicate type of fuzzing\n1 = Numeric fuzzing with integers")
+    #     print("2 = Alphanumeric fuzzing output as a string\n3 = Alpanumeric fuzzing with special characters, output as a string")
+    #     selectfuzz = int(input())
+    #     if selectfuzz !=1 and selectfuzz !=2 and selectfuzz !=3:
+    #         print("Please enter 1, 2 or 3")
     
     #calls fuzz functions based on inputs
-    if selectfuzz == 1:
-        numf()
-    if selectfuzz == 2:
-        alphanum()
-    if selectfuzz == 3:
-        alphanumspec()
+    # if selectfuzz == 1:
+    #     numf()
+    # if selectfuzz == 2:
+    #     alphanum()
+    # if selectfuzz == 3:
+    #     alphanumspec()    
 
 if __name__ == "__main__":
     main()
